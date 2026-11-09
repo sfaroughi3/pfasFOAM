@@ -1,0 +1,63 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                |
+  \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \    /   O peration     | Website:  https://openfoam.org
+    \  /    A nd           | Version:  7
+     \/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pfasFOAM;
+
+startFrom       startTime;
+
+startTime       0.0;
+
+stopAt          endTime;
+
+endTime         5184000.0;//1000000.0;//31536000; //31536000; //315360000;// 10 years in seconds
+
+deltaT          1;
+
+writeControl    adjustableRunTime;
+
+writeInterval   86400.0;//6307200;//864000.0;// Every 71 days, so that after a year we are even again //2233800;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression no;
+
+timeFormat      general;
+
+timePrecision   7;
+
+adjustTimeStep  yes;
+
+runTimeModifiable yes;
+
+maxDeltaT	50;
+
+//- for tracer time step control
+truncationError 0.1;
+truncationError_C 0.1;
+truncationError_h 0.1;
+minDeltaT	0.001;
+dTFactEvent 0.001;
+
+CSVoutput  false;
+
+eventTimeTracking true;
+
+// ************************************************************************* //

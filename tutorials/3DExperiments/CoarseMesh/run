@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication blockMesh
+
+./hydrostaticInit/Allrun
+cp hydrostaticInit/0/h 0/h
+
+runApplication setFields
+runApplication pfasFOAM

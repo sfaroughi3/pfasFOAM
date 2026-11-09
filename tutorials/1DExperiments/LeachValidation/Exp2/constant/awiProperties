@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      awiProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Thermodynamic air-water interfacial area, Eq. (3) of Brusseau (2023)
+// with van Genuchten capillary pressure. Example values; replace with yours.
+
+porosity    1;      // the "n" in Eq. (3) [-]
+sigma       72;     // surface tension [N/m]
+alphaVG     0.02;       // van Genuchten alpha [1/m]
+nVG         4.0;       // van Genuchten n [-]
+theta_s     0.359;
+theta_r     0.07;
+rhoW        1;      // water density [kg/m3] (optional)
+gMag        980;      // gravity magnitude [m/s2] (optional)
+SeMin       1e-4;      // lower clip on Se, since Pc -> infinity as Se -> 0 (optional)
+
+// ************************************************************************* //

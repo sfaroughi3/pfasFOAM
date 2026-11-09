@@ -1,0 +1,113 @@
+/*---------------------------------------------------------------------------*\
+  Project: pfasFOAM / utilities/setBoundaryWaterLevel
+
+  Redistributed as part of pfasFOAM by:
+      Energy & Intelligence Lab (Eilab) - University of Utah
+      (Nicholas T. Baker & Salah A. Faroughi), 2026
+
+  Modifications (2026):
+      - None to the code of this file; it is unchanged from the upstream
+        source (apart from this header).
+
+  License:
+      SPDX-License-Identifier: GPL-3.0-or-later
+
+      This file is part of pfasFOAM.
+
+  Previous license:
+      The upstream porousMultiphaseFoam file carries no header of its own.
+      It is part of porousMultiphaseFoam, an extension of OpenFOAM
+      Copyright (C) Toulouse INP, Pierre Horgue (as stated in the headers of
+      the other porousMultiphaseFoam source files), distributed under the GNU
+      General Public License, version 3 or (at your option) any later version
+      (see COPYING_OPENFOAM).
+\*---------------------------------------------------------------------------*/
+
+{
+    
+    volScalarField h
+        (
+            IOobject
+            (
+                "h",
+                runTime.timeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh
+        );
+
+    //-- Reading patch information
+    word patchName = args.option("patch");
+    label patchID = mesh.boundaryMesh().findPatchID(patchName);
+    fvPatchScalarField& hPatch = h.boundaryFieldRef()[patchID];
+  
+    //-- Compute and set up head pressure
+    if (args.optionFound("DEM"))
+    {
+        //- reading DEM informations
+        DEMfile fixedPotentialDEM(args.option("DEM"));
+	scalar offseth = args.optionLookupOrDefault<scalar>("offset",0.);
+	if (offseth==0)
+	{
+	    Info << nl << "Potential fixed using DEM " << endl;
+	}
+	else
+	{
+	    Info << nl << "Potential fixed using DEM offseted by " << offseth << endl;
+	}
+
+        //- computing local potential
+        const vectorField& faces = mesh.boundary()[patchID].patch().faceCentres();
+        forAll(hPatch,facei)
+        {
+            hPatch[facei] = fixedPotentialDEM.interpolate(faces[facei]) - faces[facei].z() + offseth;
+        }
+    }
+    else if (args.optionFound("STL"))
+    {
+        //- reading STL informations
+        word STLfile = args.option("STL");
+        triSurfaceMesh potentialSTL(IOobject(STLfile,mesh));
+        pointField pPoints( potentialSTL.points() );
+	scalar thresholdh = args.optionLookupOrDefault<scalar>("threshold",0.);
+	scalar offseth = args.optionLookupOrDefault<scalar>("offset",0.);
+	Info << nl << "Potential fixed using points over " << thresholdh <<  " in STL = " << STLfile << " offseted by " << offseth << endl;
+	
+        //- computing local potential
+        const vectorField& faces = mesh.boundary()[patchID].patch().faceCentres();
+        forAll(hPatch,facei)
+        {
+            scalar xy_distance = GREAT;
+            label id_point = -1;
+            forAll(pPoints,pointi)
+            {
+                if (pPoints[pointi].z()>thresholdh)
+		{
+                    scalar tmp_dist = Foam::sqrt(pow(pPoints[pointi].x()-faces[facei].x(),2)+pow(pPoints[pointi].y()-faces[facei].y(),2));
+                    if (tmp_dist < xy_distance)
+		    {
+                        xy_distance = tmp_dist;
+                        id_point = pointi;
+		    }
+		}
+            }
+            hPatch[facei] = pPoints[id_point].z() - faces[facei].z() + offseth;    
+        }
+    }  
+    else
+    {
+        //- uniform potential
+        const vectorField& faces = mesh.boundary()[patchID].patch().faceCentres();
+        scalar potential = args.optionLookupOrDefault("value",0.);
+        Info << nl << "Uniform potential fixed = " << potential << " m " << endl;
+        forAll(hPatch,facei)
+        {
+            hPatch[facei] = (potential - faces[facei].z());
+        }
+    }
+
+    h.write();
+
+}

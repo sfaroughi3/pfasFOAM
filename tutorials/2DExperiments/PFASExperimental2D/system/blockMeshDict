@@ -1,0 +1,129 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                |
+  \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \    /   O peration     | Website:  https://openfoam.org
+    \  /    A nd           | Version:  7
+     \/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 1;
+
+vertices
+(
+    (0    0    0)     // 0
+    (0.5  0    0)     // 1
+    (3    0    0)     // 2
+    (0    0    1.30)  // 3 USED TO BE (0 0 1.35)
+    (0.5  0    1.30)  // 4
+    (3    0    1.30)  // 5
+    (0    0    2)     // 6
+    (3    0    2)     // 7
+    (0    0.05 0)     // 8
+    (0.5  0.05 0)     // 9
+    (3    0.05 0)     // 10
+    (0    0.05 1.30)  // 11
+    (0.5  0.05 1.30)  // 12
+    (3    0.05 1.30)  // 13
+    (0    0.05 2)     // 14
+    (3    0.05 2)     // 15
+);
+
+blocks
+(
+    hex (3 4 1 0 11 12 9 8) (50 130 1) simpleGrading (1 1 1) // inlet
+    hex (4 5 2 1 12 13 10 9) (250 130 1) simpleGrading (1 1 1) // side
+    hex (6 7 5 3 14 15 13 11) (300 70 1) simpleGrading (1 1 1) // bottom (H0)
+);
+
+edges
+(
+);
+
+boundary
+(
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (5 7 15 13)
+        );
+    }
+
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+            (0 3 4 1)
+            (8 11 12 9)
+            (1 4 5 2)
+            (9 12 13 10)
+           	(3 6 7 5)
+           	(11 14 15 13)
+        );
+    }
+
+    sides
+    {
+        type patch;
+        faces
+        (
+            (3 6 14 11)
+            (1 2 10 9)
+            (6 7 15 14)
+            (8 11 3 0)
+        );
+    }
+
+    waterside
+    {
+        type patch;
+        faces
+        (
+            (2 5 13 10)
+        );
+    }
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 1 9 8)
+        );
+    }
+
+    longFace
+    {
+        type patch;
+        faces
+        (
+            (11 3 5 13)
+        );
+    }
+
+    shortFaces
+    {
+        type patch;
+        faces
+        (
+          (3 4 12 11)
+          (4 5 13 12)
+        );
+    }
+);
+
+
+mergePatchPairs
+(
+    (longFace shortFaces)
+);
+// ************************************************************************* //

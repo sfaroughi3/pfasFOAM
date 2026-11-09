@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      h;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    outlet
+    {
+        type            codedFixedValue;
+        value           uniform 0;
+        name            waterResevoir;
+        codeInclude
+        #{
+            #include "fvCFD.H"
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude \
+            -I$(LIB_SRC)/meshTools/lnInclude
+        #};
+        codeLibs
+        #{
+            -lfiniteVolume \
+            -lmeshTools
+        #};
+        code
+        #{
+            const fvPatch& boundaryPatch = patch();
+            const vectorField& Cf = boundaryPatch.Cf();
+            scalarField& field = *this;
+
+            forAll(Cf, faceI)
+            {
+                field[faceI] = Cf[faceI].z() - 1.35;
+            }
+        #};
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+    sides
+    {
+        type            darcyGradPressure;
+        value           uniform 0;
+    }
+    waterside
+    {
+        type            zeroGradient;
+    }
+    inlet
+    {
+        type            darcyGradPressure;
+        value           uniform -3;
+    }
+}
+
+// ************************************************************************* //

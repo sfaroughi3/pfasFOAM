@@ -1,0 +1,29 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeParDict;
+}
+
+numberOfSubdomains  1024;
+
+method              multiLevel;
+
+multiLevelCoeffs
+{
+    nodes
+    {
+        numberOfSubdomains  8;
+        method              scotch;
+    }
+    cores
+    {
+        numberOfSubdomains  128;
+        method              scotch;
+    }
+}
+
+distributed     no;
+
+roots           ();

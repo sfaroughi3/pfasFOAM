@@ -1,0 +1,34 @@
+#!/bin/sh
+# Hydrostatic initial condition: steady darcyFoam solve with h = 0 at the
+# bottom and no flow through all other patches (h = -z).
+# Writes hydrostaticInit/0/h, using ../0/h for dimensions and BCs.
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+rm -rf 0 constant/polyMesh constant/g log.*
+cp -r 0.orig 0
+cp ../constant/g constant/g
+if [ -d ../constant/polyMesh ]
+then
+    ln -s ../../constant/polyMesh constant/polyMesh
+else
+    runApplication blockMesh -dict ../system/blockMeshDict || exit 1
+fi
+runApplication darcyFoam || exit 1
+grep -q "^internalField   nonuniform" 0/p || { echo "darcyFoam produced no p field" >&2; exit 1; }
+
+# Build 0/h: header and BCs from ../0/h, internalField from 0/p
+awk -v src=0/p '
+BEGIN {
+    while ((getline l < src) > 0) {
+        if (l ~ /^internalField/) on = 1
+        if (on) blk = blk l "\n"
+        if (on && (l ~ /^;/ || l ~ /^internalField.*;/)) break
+    }
+}
+/^internalField/ { skip = 1; printf "%s", blk }
+skip { if ($0 ~ /^;/ || $0 ~ /^internalField.*;/) skip = 0; next }
+{ print }
+' ../0/h > 0/h || exit 1
+
+rm -rf 0/p 0/U 0/phi constant/polyMesh constant/g
